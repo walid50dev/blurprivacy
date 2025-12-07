@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlurPrivacy - Hide Sensitive Info on Screenshots Securely</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Free tool to blur sensitive information on screenshots. Redact emails, passwords, and faces securely in your browser. No upload required.">
+    <meta name="keywords" content="blur image online, redact screenshot, hide text in image, privacy tool, secure image blur, offline blur tool">
+    <meta name="author" content="BlurPrivacy">
+    <meta name="theme-color" content="#0d1117">
+    
+    <!-- Canonical Link -->
+    <link rel="canonical" href="https://walid50dev.github.io/blurprivacy/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://walid50dev.github.io/blurprivacy/">
+    <meta property="og:title" content="BlurPrivacy - Secure Screenshot Redactor">
+    <meta property="og:description" content="Blur sensitive info on images instantly. 100% Client-side privacy.">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="BlurPrivacy - Secure Screenshot Redactor">
+    <meta property="twitter:description" content="Blur sensitive info on images instantly. 100% Client-side privacy.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Favicon (Eye with slash) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👁️‍🗨️</text></svg>">
+
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --panel-bg: #161b22;
+            --border-color: #30363d;
+            --accent-color: #238636; /* Green for Action */
+            --btn-hover: #2ea043;
+            --danger: #da3633;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 { font-size: 1.25rem; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .badge { background: #1f6feb26; color: #58a6ff; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Dropzone Styling */
+        .dropzone {
+            width: 100%;
+            max-width: 600px;
+            height: 200px;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            background: var(--panel-bg);
+            transition: 0.3s;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .dropzone:hover { border-color: var(--accent-color); background: #161b22cc; }
+        .dropzone p { color: #8b949e; margin-top: 10px; }
+        .dropzone svg { width: 40px; height: 40px; fill: #8b949e; }
+
+        /* Canvas Container */
+        .canvas-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 1rem;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: crosshair;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: var(--panel-bg);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        button {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover { background-color: var(--border-color); }
+
+        button.primary { background-color: var(--accent-color); color: white; border: none; }
+        button.primary:hover { background-color: var(--btn-hover); }
+        
+        button.danger { color: var(--danger); border-color: var(--border-color); }
+        button.danger:hover { background-color: rgba(218, 54, 51, 0.1); }
+
+        .instructions {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #8b949e;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.85rem;
+            color: #8b949e;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Ko-fi Button */
+        .donate-fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #29abe0;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>👁️‍🗨️ BlurPrivacy <span class="badge">100% Secure</span></h1>
+        <div style="font-size: 0.85rem; color: #8b949e;">Your photos never leave this device.</div>
+    </header>
+
+    <main>
+        <!-- Upload Section -->
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            <p><strong>Click to Upload Image</strong><br>or Drag & Drop here (Ctrl+V supported)</p>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        </div>
+
+        <!-- Editor Section -->
+        <div class="canvas-container" id="editor">
+            <div class="toolbar">
+                <span style="display:flex; align-items:center; font-size:0.9rem;">👇 Drag on image to blur</span>
+                <button onclick="undoLast()">↩️ Undo</button>
+                <button class="danger" onclick="resetApp()">❌ Reset</button>
+                <button class="primary" onclick="downloadImage()">💾 Download Image</button>
+            </div>
+            
+            <canvas id="canvas"></canvas>
+            
+            <p class="instructions">Tip: You can paste an image directly from your clipboard (Ctrl+V).</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>Built for privacy. No servers. No tracking. Open Source.</p>
+    </footer>
+
+    <!-- KO-FI BUTTON -->
+    <a href="https://ko-fi.com/walid50dev" target="_blank" class="donate-fab">
+        <span>☕</span> Support on Ko-fi
+    </a>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const editor = document.getElementById('editor');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let originalImage = new Image();
+        let blurs = []; // Store coordinates of blurred areas
+        let isDrawing = false;
+        let startX, startY;
+
+        // --- Event Listeners ---
+
+        // 1. Upload via Click
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length) loadImage(e.target.files[0]);
+        });
+
+        // 2. Upload via Drag & Drop
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = '#238636'; });
+        dropzone.addEventListener('dragleave', (e) => { e.preventDefault(); dropzone.style.borderColor = '#30363d'; });
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if(e.dataTransfer.files.length) loadImage(e.dataTransfer.files[0]);
+        });
+
+        // 3. Upload via Paste (Ctrl+V)
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData.items;
+            for (let item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    loadImage(item.getAsFile());
+                }
+            }
+        });
+
+        // --- Core Functions ---
+
+        function loadImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                originalImage.src = e.target.result;
+                originalImage.onload = () => {
+                    initCanvas();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function initCanvas() {
+            // Hide dropzone, show editor
+            dropzone.style.display = 'none';
+            editor.style.display = 'flex';
+
+            // Set canvas size to match image resolution
+            canvas.width = originalImage.width;
+            canvas.height = originalImage.height;
+
+            render();
+        }
+
+        // --- Drawing Logic (The Blur Effect) ---
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            // Calculate scale in case canvas is resized by CSS
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            startX = (e.clientX - rect.left) * scaleX;
+            startY = (e.clientY - rect.top) * scaleY;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const currentX = (e.clientX - rect.left) * scaleX;
+            const currentY = (e.clientY - rect.top) * scaleY;
+
+            render(); // Redraw old stuff
+            
+            // Draw selection box (Preview)
+            ctx.strokeStyle = '#238636';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (!isDrawing) return;
+            isDrawing = false;
+            
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const endX = (e.clientX - rect.left) * scaleX;
+            const endY = (e.clientY - rect.top) * scaleY;
+
+            // Save the blur rectangle
+            blurs.push({
+                x: startX,
+                y: startY,
+                w: endX - startX,
+                h: endY - startY
+            });
+            render();
+        });
+
+        function render() {
+            // 1. Draw Original Image (Clear everything)
+            ctx.filter = 'none';
+            ctx.drawImage(originalImage, 0, 0);
+
+            // 2. Draw Blurs
+            blurs.forEach(rect => {
+                // Save context state
+                ctx.save();
+                
+                // Define the clipping region for the blur
+                ctx.beginPath();
+                ctx.rect(rect.x, rect.y, rect.w, rect.h);
+                ctx.clip();
+                
+                // Apply blur filter and draw the image again over itself
+                ctx.filter = 'blur(15px)'; // Adjust blur strength here
+                ctx.drawImage(originalImage, 0, 0);
+                
+                ctx.restore();
+            });
+        }
+
+        function undoLast() {
+            blurs.pop();
+            render();
+        }
+
+        function resetApp() {
+            blurs = [];
+            originalImage = new Image();
+            dropzone.style.display = 'flex';
+            editor.style.display = 'none';
+            dropzone.style.borderColor = '#30363d';
+            fileInput.value = '';
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'secure-redacted-image.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>
